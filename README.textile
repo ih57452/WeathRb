@@ -13,23 +13,16 @@ It either needs to have a data file (sn.last) in the same folder as the script, 
 
 h2. Goals (TODO)
 
-*Support all level-3 data formats (including TDWR data)
-
-*Ability to export the image as a KML (Google Earth) overlay
-
-*A map background
-
-*Zooming and panning
-
-*Better image smoothing
-
-*Multiple-radar mosaics
-
-*3D viewing of multiple tilts
-
-*Ability to import KML overlays
+* Support all level-3 data formats (including TDWR data)
+* Ability to export the image as a KML (Google Earth) overlay
+* A map background
+* Zooming and panning
+* Better image smoothing
+* Multiple-radar mosaics
+* 3D viewing of multiple tilts
+* Ability to import KML overlays
 
 
 
 
-Inspired by the "Geo::Nexrad":http://sourceforge.net/projects/nexrad-perl Perl module.
+p. Inspired by the "Geo::Nexrad":http://sourceforge.net/projects/nexrad-perl Perl module.
