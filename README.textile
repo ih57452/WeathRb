@@ -1,16 +1,19 @@
 h2. WeathRb
-p. A "Ruby-Processing":http://github.com/jashkenas/ruby-processing program to view "NEXRAD":http://en.wikipedia.org/wiki/Nexrad "Level-3":http://lwf.ncdc.noaa.gov/oa/radar/radarproducts.html#lvlproductlist radar data.
+
+A "Ruby-Processing":http://github.com/jashkenas/ruby-processing program to view "NEXRAD":http://en.wikipedia.org/wiki/Nexrad "Level-3":http://lwf.ncdc.noaa.gov/oa/radar/radarproducts.html#lvlproductlist radar data.
 Right now it's only at a 'working preview' stage and only supports viewing of reflectivity data from the WSR88Ds.
 
 
 h2. To Run
-p. Get the Ruby-Processing gem if you don't already have it: <pre>gem install ruby-processing</pre>
+
+Get the Ruby-Processing gem if you don't already have it: <pre>gem install ruby-processing</pre>
 Then use Ruby-Processing's <pre>rp5</pre> command: <pre>rp5 run weath.rb</pre>
 It either needs to have a data file (sn.last) in the same folder as the script, or you can uncomment the <pre>site_id</pre> variable in the script to have it load the latest data file from the internet.
 
 
 h2. Goals (TODO)
-p. *Support all level-3 data formats (including TDWR data)
+
+*Support all level-3 data formats (including TDWR data)
 *Ability to export the image as a KML (Google Earth) overlay
 *A map background
 *Zooming and panning
@@ -21,4 +24,4 @@ p. *Support all level-3 data formats (including TDWR data)
 
 
 
-p. Inspired by the "Geo::Nexrad":http://sourceforge.net/projects/nexrad-perl Perl module.
+Inspired by the "Geo::Nexrad":http://sourceforge.net/projects/nexrad-perl Perl module.
