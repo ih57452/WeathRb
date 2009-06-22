@@ -7,20 +7,28 @@ Right now it's only at a 'working preview' stage and only supports viewing of re
 h2. To Run
 
 Get the Ruby-Processing gem if you don't already have it: <pre>gem install ruby-processing</pre>
-Then use Ruby-Processing's <pre>rp5</pre> command: <pre>rp5 run weath.rb</pre>
-It either needs to have a data file (sn.last) in the same folder as the script, or you can uncomment the <pre>site_id</pre> variable in the script to have it load the latest data file from the internet.
+Then use Ruby-Processing's @rp5@ command: <pre>rp5 run weath.rb</pre>
+It either needs to have a data file (sn.last) in the same folder as the script, or you can uncomment the @site_id@ variable in the script to have it load the latest data file from the internet.
 
 
 h2. Goals (TODO)
 
 *Support all level-3 data formats (including TDWR data)
+
 *Ability to export the image as a KML (Google Earth) overlay
+
 *A map background
+
 *Zooming and panning
+
 *Better image smoothing
+
 *Multiple-radar mosaics
+
 *3D viewing of multiple tilts
+
 *Ability to import KML overlays
+
 
 
 
