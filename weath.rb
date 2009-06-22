@@ -37,7 +37,48 @@ class NEXRAD
       data[:latitude_of_radar] = f.whole / 1000.0
       data[:longitude_of_radar] = f.whole / 1000.0
       data[:height_of_radar] = f.half
-      data[:product_code] = f.half
+      data[:product_code] = case f.half
+        when 2 : 'General Status Message'
+        when 19 : 'Base Reflectivity 124 nmi'
+        when 20 : 'Base Reflectivity 248 nmi'
+        when 25 : 'Base Radial Velocity 32 nmi'
+        when 27 : 'Base Radial Velocity 124 nmi'
+        when 28 : 'Base Spectrum Width 32 nmi'
+        when 30 : 'Base Spectrum Width 124 nmi'
+        when 32 : 'Digital Hybrid Scan Reflectivity'
+        when 34 : 'Clutter Filter Control'
+        when 36 : 'Composite Reflectivity 8 levels 248 nmi'
+        when 37 : 'Composite Reflectivity 16 levels 124 nmi'
+        when 38 : 'Composite Reflectivity 16 levels 248 nmi'
+        when 41 : 'Echo Tops'
+        when 47 : 'Severe Weather Probability'
+        when 48 : 'VAD Wind Profile'
+        when 56 : 'Storm Relative Mean Velocity'
+        when 57 : 'Vertical Integrated Liquid'
+        when 58 : 'Storm Tracking Information'
+        when 59 : 'Hail Index'
+        when 60 : 'Mesocyclone'
+        when 61 : 'Tornadic Vortex Signature'
+        when 62 : 'Storm Structure'
+        when 65 : 'Layer Composite Reflectivity Maximum (low level)'
+        when 66 : 'Layer Composite Reflectivity Maximum (middle level)'
+        when 67 : 'Layer Composite Reflectivity with AP removed'
+        when 74 : 'Radar Coded Message'
+        when 75 : 'Free Text Message'
+        when 78 : 'Surface Rainfall 1 Hour Totals'
+        when 79 : 'Surface Rainfall 3 Hour Totals'
+        when 80 : 'Surface Rainfall Storm Total'
+        when 81 : 'Hourly Digital Precip Array'
+        when 82 : 'Supplemental Precip Data'
+        when 90 : 'Layer Composite Reflectivity Maximum (high level)'
+        when 138 : 'Digital Storm Total Precipitation'
+        when 141 : 'Mesocyclone'
+        when 152 : 'Archive III Status Product'
+        when 181 : 'Base Reflectivity 48 nmi'
+        when 182 : 'Base Radial Velocity 48 nmi'
+        when 186 : 'Long Range Reflectivity 225 nmi'
+        else 'Unkown'
+      end
       data[:operational_mode] = case f.half
         when 0 : 'Maintenance'
         when 1 : 'Clear Air'
@@ -161,9 +202,10 @@ class Viewer < Processing::App
     fill 255, 255, 255
     text "Radar: #{data[:header2][3..5]}", 5, 15
     text data[:time_of_message].to_s, 5, 30
-    text "Mode: #{data[:operational_mode]}", 5, 45
-    text "VCP: #{data[:volume_coverage_pattern]}", 5, 60
-    text "Tilt: #{data[:p3] / 10.0} degrees", 5, 75
+    text data[:product_code].to_s, 5, 45
+    text "Mode: #{data[:operational_mode]}", 5, 60
+    text "VCP: #{data[:volume_coverage_pattern]}", 5, 75
+    text "Tilt: #{data[:p3] / 10.0} degrees", 5, 90
     translate (width / 2), (height / 2)
     scale 1.75
     
