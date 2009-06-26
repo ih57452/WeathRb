@@ -1,7 +1,3 @@
-#uncomment the site_id line and enter the site you want to view
-#leave it commented or blank to view the sample file
-#$site_id = 'kmxx'
-
 require 'ruby-processing'
 require 'open-uri'
 
@@ -18,11 +14,16 @@ end
 
 class NEXRAD
 
-  def self.parse
+  def self.parse(site, product)
     data = {}
-    file = ($site_id and $site_id.length == 4) ? "http://weather.noaa.gov/pub/SL.us008001/DF.of/DC.radar/DS.p19r0/SI.#{$site_id}/sn.last" : 'sn.last'
-    open(file, 'rb') do |f|
-      #message header
+    dir = case product
+      when 'Reflectivity_0' : 'p19r0'
+      when 'Reflectivity_1' : 'p19r1'
+      when 'Reflectivity_2' : 'p19r2'
+      when 'Reflectivity_3' : 'p19r3'
+    end
+    open("http://weather.noaa.gov/pub/SL.us008001/DF.of/DC.radar/DS.#{dir}/SI.#{site.downcase}/sn.last", 'rb') do |f|
+      #message header block
       data[:header1] = f.read(21)
       data[:header2] = f.read(9)
       data[:message_code] = f.half
@@ -51,7 +52,6 @@ class NEXRAD
         when 37 : 'Composite Reflectivity 16 levels 124 nmi'
         when 38 : 'Composite Reflectivity 16 levels 248 nmi'
         when 41 : 'Echo Tops'
-        when 47 : 'Severe Weather Probability'
         when 48 : 'VAD Wind Profile'
         when 56 : 'Storm Relative Mean Velocity'
         when 57 : 'Vertical Integrated Liquid'
@@ -164,90 +164,164 @@ class NEXRAD
     end #open
   end #parse
 
-  def self.ref_color_table(value)
-    case value
-      when 1 : [0, 236, 236]
-      when 2 : [1, 160, 246]
-      when 3 : [0, 0, 246]
-      when 4 : [0, 255, 0]
-      when 5 : [0, 200, 0]
-      when 6 : [0, 144, 0]
-      when 7 : [255, 255, 0]
-      when 8 : [231, 192, 0]
-      when 9 : [255, 144, 0]
-      when 10 : [255, 0, 0]
-      when 11 : [214, 0,0]
-      when 12 : [192, 0, 0]
-      when 13 : [255, 0, 255]
-      when 14 : [153, 85, 201]
-      when 15 : [255, 255, 255]
-      else [255, 255, 255]
-    end#case
-  end#ref_color_table
+  def self.color_table(value, palette)
+    if palette == '2'
+      case value
+        when 1 : [66, 66, 66]
+        when 2 : [99, 99, 99]
+        when 3 : [40, 126, 40]
+        when 4 : [60, 160, 20]
+        when 5 : [120, 220, 20]
+        when 6 : [250, 250, 20]
+        when 7 : [250, 204, 20]
+        when 8 : [250, 153, 20]
+        when 9 : [250, 79, 20]
+        when 10 : [250, 0, 20]
+        when 11 : [220, 30, 70]
+        when 12 : [200, 30, 100]
+        when 13 : [170, 30, 150]
+        when 14 : [255, 0, 156]
+        when 15 : [255, 255, 255]
+        else [255, 255, 255]
+      end#case
+    elsif palette == '3'
+      case value
+        when 1 : [156, 156, 156]
+        when 2 : [118, 118, 118]
+        when 3 : [255, 170, 170]
+        when 4 : [238, 140, 140]
+        when 5 : [201, 112, 112]
+        when 6 : [0, 251, 144]
+        when 7 : [0, 187, 0]
+        when 8 : [255, 255, 112]
+        when 9 : [208, 208, 96]
+        when 10 : [255, 96, 96]
+        when 11 : [218, 0, 0]
+        when 12 : [174, 0, 0]
+        when 13 : [0, 0, 255]
+        when 14 : [255, 255, 255]
+        when 15 : [231, 0, 255]
+        else [255, 255, 255]
+      end #case
+    else
+      case value
+        when 1 : [0, 236, 236]
+        when 2 : [1, 160, 246]
+        when 3 : [0, 0, 246]
+        when 4 : [0, 255, 0]
+        when 5 : [0, 200, 0]
+        when 6 : [0, 144, 0]
+        when 7 : [255, 255, 0]
+        when 8 : [231, 192, 0]
+        when 9 : [255, 144, 0]
+        when 10 : [255, 0, 0]
+        when 11 : [214, 0, 0]
+        when 12 : [192, 0, 0]
+        when 13 : [255, 0, 255]
+        when 14 : [153, 85, 201]
+        when 15 : [255, 255, 255]
+        else [255, 255, 255]
+      end #case
+    end #if
+  end #color table
 end #class
 
 class Viewer < Processing::App
   #load_library :opengl
   #include_package 'processing.opengl'
+  load_library :control_panel
   
-  def setup
-    size 825, 825, P3D
+  def setup    
+    size 805, 805, P3D
     #hint ENABLE_OPENGL_4X_SMOOTH
     #hint DISABLE_OPENGL_ERROR_REPORT
-    no_stroke
-    background 0
+    frame_rate 20
     text_font load_font("Univers66.vlw.gz"), 15
-   
-    data = NEXRAD.parse
-    fill 255, 255, 255
-    text "Radar: #{data[:header2][3..5]}", 5, 15
-    text data[:time_of_message].to_s, 5, 30
-    text data[:product_code].to_s, 5, 45
-    text "Mode: #{data[:operational_mode]}", 5, 60
-    text "VCP: #{data[:volume_coverage_pattern]}", 5, 75
-    text "Tilt: #{data[:p3] / 10.0} degrees", 5, 90
-    translate (width / 2), (height / 2)
-    scale 1.75
+    control_panel do |c|
+      c.menu(:site, %w{KMXX KBMX KGWX KABR KABX KAKQ KAMA KAMX KAPX KARX KATX KBBX KBGM KBHX KBIS KBLX KBMX KBOX KBRO KBUF KBYX KCAE KCBW KCBX KCCX KCLE KCLX KCRP KCXX KCYS KDAX KDDC KDFX KDGX KDIX KDLH KDMX KDOX KDTX KDVN KDYX KEAX KEMX KENX KEOX KEPZ KESX KEVX KEWX KEYX KFCX KFDR KFDX KFFC KFSD KFSX KFTG KFWS KGGW KGJX KGLD KGRB KGRK KGRR KGSP KGWX KGYX KHDX KHGX KHNX KHPX KHTX KICT KICX KILN KILX KIND KINX KIWA KIWX KJAX KJGX KJKL KLBB KLCH KLIX KLNX KLOT KLRX KLSX KLTX KLVX KLWX KLZK KMAF KMAX KMBX KMHX KMKX KMLB KMOB KMPX KMQT KMRX KMSX KMTX KMUX KMVX KMXX KNKX KNQA KOAX KOHX KOKX KOTX KPAH KPBZ KPDT KPOE KPUX KRAX KRGX KRIW KRLX KRTX KSFX KSGF KSHV KSJT KSOX KSRX KTBW KTFX KTLH KTLX KTWS KTYX KUDX KUEX KVAX KVBX KVNX KVTX KVWX KYUX PABC PACG PAEC PAHG PAIH PAKC PAPD PGUA PHKI PHKM PHMO PHWA TJUA})
+      c.menu(:product, %w{Reflectivity_0 Reflectivity_1 Reflectivity_2 Reflectivity_3})
+      c.button :update
+      c.slider(:zoom, 1..5, 1.75)
+      c.menu(:palette, %w{1 2 3}) { @img = draw_radial_image if @img }
+    end #control panel
+    update
+    @x = 0
+    @y = 0
+  end #setup
+  
+  def draw
+    background 0
+    draw_info
+    scale @zoom
+    image @img, @x, @y
+  end #draw
+  
+  def mouse_dragged
+    @x += mouse_x - pmouse_x
+    @y += mouse_y - pmouse_y
+  end #mouse dragged
     
+  def update    
+    @data = NEXRAD.parse(@site, @product)
+    @img = draw_radial_image
+  end #update
+  
+  def draw_info
+    fill 255
+    text "Radar: #{@data[:header2][3..5]}", 5, 15
+    text @data[:time_of_message].to_s, 5, 30
+    text @data[:product_code].to_s, 5, 45
+    text "Mode: #{@data[:operational_mode]}", 5, 60
+    text "VCP: #{@data[:volume_coverage_pattern]}", 5, 75
+    text "Tilt: #{@data[:p3] / 10.0} degrees", 5, 90
+  end #draw info
+  
+  def draw_radial_image
     layer = 0
+    b = create_graphics(@data[:symbology][layer][:data][:number_of_range_bins] * 2, @data[:symbology][layer][:data][:number_of_range_bins] * 2, P3D)
+    b.begin_draw
+      b.no_stroke
+      b.background 0, 0, 0, 0
+    b.end_draw
     prev_radial = nil
-    #data[:symbology][layer][:radials].each do |radial|
-    (0..data[:symbology][layer][:data][:number_of_radials]).each do |radial_index|
+    (0..@data[:symbology][layer][:data][:number_of_radials]).each do |radial_index|
       radial_index -= 1
       bin_index = 0
       this_radial = []
-      #radial[:range_bins].each do |bin_value|
-      data[:symbology][layer][:radials][radial_index][:range_bins].each do |bin_value|
-        value = NEXRAD.ref_color_table(bin_value)
-        x = cos(radians(data[:symbology][layer][:radials][radial_index][:radial_start_angle] + (data[:symbology][layer][:radials][radial_index][:radial_angle_delta] / 2))) * bin_index
-        y = sin(radians(data[:symbology][layer][:radials][radial_index][:radial_start_angle] + (data[:symbology][layer][:radials][radial_index][:radial_angle_delta] / 2))) * bin_index
+      @data[:symbology][layer][:radials][radial_index][:range_bins].each do |bin_value|
+        value = NEXRAD.color_table(bin_value, @palette)
+        x = (cos(radians(@data[:symbology][layer][:radials][radial_index][:radial_start_angle] + (@data[:symbology][layer][:radials][radial_index][:radial_angle_delta] / 2))) * bin_index) + @data[:symbology][layer][:data][:number_of_range_bins]
+        y = (sin(radians(@data[:symbology][layer][:radials][radial_index][:radial_start_angle] + (@data[:symbology][layer][:radials][radial_index][:radial_angle_delta] / 2))) * bin_index) + @data[:symbology][layer][:data][:number_of_range_bins]
         this_radial << [x, y, value]
         bin_index += 1
       end #range bins
       if prev_radial.nil?
         prev_radial = this_radial.dup
         next
-      end
-      (0...(data[:symbology][layer][:data][:number_of_range_bins] - 1)).each do |index|
+      end #if
+      (0...(@data[:symbology][layer][:data][:number_of_range_bins] - 1)).each do |index|
         x1, y1, value1 = this_radial[index]
         x2, y2, value2 = prev_radial[index]
         index += 1
         x3, y3, value3 = prev_radial[index]
         x4, y4, value4 = this_radial[index]
-        begin_shape QUADS
-          fill rgb(*value1)
-          vertex x1, y1
-          fill rgb(*value2)
-          vertex x2, y2
-          fill rgb(*value3)
-          vertex x3, y3
-          fill rgb(*value4)
-          vertex x4, y4
-        end_shape
-      end #draw
+        b.begin_draw
+        b.begin_shape QUADS
+          b.fill rgb(*value1)
+          b.vertex x1, y1
+          b.fill rgb(*value2)
+          b.vertex x2, y2
+          b.fill rgb(*value3)
+          b.vertex x3, y3
+          b.fill rgb(*value4)
+          b.vertex x4, y4
+        b.end_shape
+        b.end_draw
+      end #shape
       prev_radial = this_radial.dup
     end #radial
-  end #setup
+    return b
+  end #draw radial image
 
 end #class
 
