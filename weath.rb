@@ -109,7 +109,7 @@ class NEXRAD
       data[:threshold14] = f.half
       data[:threshold15] = f.half
       data[:threshold16] = f.half
-      data[:p4] = f.half #max reflectivity in scan
+      data[:p4] = f.half
       data[:p5] = f.half
       data[:p6] = f.half
       data[:p7] = f.half
@@ -165,7 +165,7 @@ class NEXRAD
   end #parse
 
   def self.color_table(value, palette)
-    if palette == '2'
+    if palette == 'Reflectivity_2'
       case value
         when 1 : [66, 66, 66]
         when 2 : [99, 99, 99]
@@ -184,25 +184,6 @@ class NEXRAD
         when 15 : [255, 255, 255]
         else [255, 255, 255]
       end#case
-    elsif palette == '3'
-      case value
-        when 1 : [156, 156, 156]
-        when 2 : [118, 118, 118]
-        when 3 : [255, 170, 170]
-        when 4 : [238, 140, 140]
-        when 5 : [201, 112, 112]
-        when 6 : [0, 251, 144]
-        when 7 : [0, 187, 0]
-        when 8 : [255, 255, 112]
-        when 9 : [208, 208, 96]
-        when 10 : [255, 96, 96]
-        when 11 : [218, 0, 0]
-        when 12 : [174, 0, 0]
-        when 13 : [0, 0, 255]
-        when 14 : [255, 255, 255]
-        when 15 : [231, 0, 255]
-        else [255, 255, 255]
-      end #case
     else
       case value
         when 1 : [0, 236, 236]
@@ -227,33 +208,34 @@ class NEXRAD
 end #class
 
 class Viewer < Processing::App
-  #load_library :opengl
-  #include_package 'processing.opengl'
+  load_library :opengl
+  include_package 'processing.opengl'
   load_library :control_panel
   
   def setup    
-    size 805, 805, P3D
-    #hint ENABLE_OPENGL_4X_SMOOTH
-    #hint DISABLE_OPENGL_ERROR_REPORT
+    size 805, 805, OPENGL
+    hint ENABLE_OPENGL_4X_SMOOTH
+    hint DISABLE_OPENGL_ERROR_REPORT
     frame_rate 20
     text_font load_font("Univers66.vlw.gz"), 15
     control_panel do |c|
       c.menu(:site, %w{KMXX KBMX KGWX KABR KABX KAKQ KAMA KAMX KAPX KARX KATX KBBX KBGM KBHX KBIS KBLX KBMX KBOX KBRO KBUF KBYX KCAE KCBW KCBX KCCX KCLE KCLX KCRP KCXX KCYS KDAX KDDC KDFX KDGX KDIX KDLH KDMX KDOX KDTX KDVN KDYX KEAX KEMX KENX KEOX KEPZ KESX KEVX KEWX KEYX KFCX KFDR KFDX KFFC KFSD KFSX KFTG KFWS KGGW KGJX KGLD KGRB KGRK KGRR KGSP KGWX KGYX KHDX KHGX KHNX KHPX KHTX KICT KICX KILN KILX KIND KINX KIWA KIWX KJAX KJGX KJKL KLBB KLCH KLIX KLNX KLOT KLRX KLSX KLTX KLVX KLWX KLZK KMAF KMAX KMBX KMHX KMKX KMLB KMOB KMPX KMQT KMRX KMSX KMTX KMUX KMVX KMXX KNKX KNQA KOAX KOHX KOKX KOTX KPAH KPBZ KPDT KPOE KPUX KRAX KRGX KRIW KRLX KRTX KSFX KSGF KSHV KSJT KSOX KSRX KTBW KTFX KTLH KTLX KTWS KTYX KUDX KUEX KVAX KVBX KVNX KVTX KVWX KYUX PABC PACG PAEC PAHG PAIH PAKC PAPD PGUA PHKI PHKM PHMO PHWA TJUA})
       c.menu(:product, %w{Reflectivity_0 Reflectivity_1 Reflectivity_2 Reflectivity_3})
       c.button :update
-      c.slider(:zoom, 1..5, 1.75)
-      c.menu(:palette, %w{1 2 3}) { @img = draw_radial_image if @img }
+      c.slider(:zoom, 1..10, 1.75)
+      c.menu(:palette, %w{Reflectivity_1 Reflectivity_2}) { @img = draw_radial_image if @img }
+      c.checkbox(:smoothing, true) { @img = draw_radial_image if @img }
     end #control panel
-    update
     @x = 0
     @y = 0
   end #setup
   
   def draw
     background 0
-    draw_info
+    text("Select a site from the control panel and click the 'update' button.", 50, 50) unless @img
+    draw_info if @img
     scale @zoom
-    image @img, @x, @y
+    image(@img, @x, @y) if @img
   end #draw
   
   def mouse_dragged
@@ -290,8 +272,13 @@ class Viewer < Processing::App
       this_radial = []
       @data[:symbology][layer][:radials][radial_index][:range_bins].each do |bin_value|
         value = NEXRAD.color_table(bin_value, @palette)
-        x = (cos(radians(@data[:symbology][layer][:radials][radial_index][:radial_start_angle] + (@data[:symbology][layer][:radials][radial_index][:radial_angle_delta] / 2))) * bin_index) + @data[:symbology][layer][:data][:number_of_range_bins]
-        y = (sin(radians(@data[:symbology][layer][:radials][radial_index][:radial_start_angle] + (@data[:symbology][layer][:radials][radial_index][:radial_angle_delta] / 2))) * bin_index) + @data[:symbology][layer][:data][:number_of_range_bins]
+        if @smoothing
+          x = (cos(radians(@data[:symbology][layer][:radials][radial_index][:radial_start_angle] + (@data[:symbology][layer][:radials][radial_index][:radial_angle_delta] / 2))) * bin_index) + @data[:symbology][layer][:data][:number_of_range_bins]
+          y = (sin(radians(@data[:symbology][layer][:radials][radial_index][:radial_start_angle] + (@data[:symbology][layer][:radials][radial_index][:radial_angle_delta] / 2))) * bin_index) + @data[:symbology][layer][:data][:number_of_range_bins]
+        else
+          x = (cos(radians(@data[:symbology][layer][:radials][radial_index][:radial_start_angle] + @data[:symbology][layer][:radials][radial_index][:radial_angle_delta])) * bin_index) + @data[:symbology][layer][:data][:number_of_range_bins]
+          y = (sin(radians(@data[:symbology][layer][:radials][radial_index][:radial_start_angle] + @data[:symbology][layer][:radials][radial_index][:radial_angle_delta])) * bin_index) + @data[:symbology][layer][:data][:number_of_range_bins]
+        end #if
         this_radial << [x, y, value]
         bin_index += 1
       end #range bins
@@ -306,16 +293,16 @@ class Viewer < Processing::App
         x3, y3, value3 = prev_radial[index]
         x4, y4, value4 = this_radial[index]
         b.begin_draw
-        b.begin_shape QUADS
-          b.fill rgb(*value1)
-          b.vertex x1, y1
-          b.fill rgb(*value2)
-          b.vertex x2, y2
-          b.fill rgb(*value3)
-          b.vertex x3, y3
-          b.fill rgb(*value4)
-          b.vertex x4, y4
-        b.end_shape
+          b.begin_shape QUADS
+            b.fill rgb(*value1)
+            b.vertex x1, y1
+            b.fill rgb(*value2) if @smoothing
+            b.vertex x2, y2
+            b.fill rgb(*value3) if @smoothing
+            b.vertex x3, y3
+            b.fill rgb(*value4) if @smoothing
+            b.vertex x4, y4
+          b.end_shape
         b.end_draw
       end #shape
       prev_radial = this_radial.dup
