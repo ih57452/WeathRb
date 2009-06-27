@@ -213,7 +213,7 @@ class Viewer < Processing::App
   load_library :control_panel
   
   def setup    
-    size 805, 805, OPENGL
+    size 800, 800, OPENGL
     hint ENABLE_OPENGL_4X_SMOOTH
     hint DISABLE_OPENGL_ERROR_REPORT
     frame_rate 20
@@ -222,7 +222,7 @@ class Viewer < Processing::App
       c.menu(:site, %w{KMXX KBMX KGWX KABR KABX KAKQ KAMA KAMX KAPX KARX KATX KBBX KBGM KBHX KBIS KBLX KBMX KBOX KBRO KBUF KBYX KCAE KCBW KCBX KCCX KCLE KCLX KCRP KCXX KCYS KDAX KDDC KDFX KDGX KDIX KDLH KDMX KDOX KDTX KDVN KDYX KEAX KEMX KENX KEOX KEPZ KESX KEVX KEWX KEYX KFCX KFDR KFDX KFFC KFSD KFSX KFTG KFWS KGGW KGJX KGLD KGRB KGRK KGRR KGSP KGWX KGYX KHDX KHGX KHNX KHPX KHTX KICT KICX KILN KILX KIND KINX KIWA KIWX KJAX KJGX KJKL KLBB KLCH KLIX KLNX KLOT KLRX KLSX KLTX KLVX KLWX KLZK KMAF KMAX KMBX KMHX KMKX KMLB KMOB KMPX KMQT KMRX KMSX KMTX KMUX KMVX KMXX KNKX KNQA KOAX KOHX KOKX KOTX KPAH KPBZ KPDT KPOE KPUX KRAX KRGX KRIW KRLX KRTX KSFX KSGF KSHV KSJT KSOX KSRX KTBW KTFX KTLH KTLX KTWS KTYX KUDX KUEX KVAX KVBX KVNX KVTX KVWX KYUX PABC PACG PAEC PAHG PAIH PAKC PAPD PGUA PHKI PHKM PHMO PHWA TJUA})
       c.menu(:product, %w{Reflectivity_0 Reflectivity_1 Reflectivity_2 Reflectivity_3})
       c.button :update
-      c.slider(:zoom, 1..10, 1.75)
+      c.slider(:zoom, 0.5..10, 0.87)
       c.menu(:palette, %w{Reflectivity_1 Reflectivity_2}) { @img = draw_radial_image if @img }
       c.checkbox(:smoothing, true) { @img = draw_radial_image if @img }
     end #control panel
@@ -260,7 +260,7 @@ class Viewer < Processing::App
   
   def draw_radial_image
     layer = 0
-    b = create_graphics(@data[:symbology][layer][:data][:number_of_range_bins] * 2, @data[:symbology][layer][:data][:number_of_range_bins] * 2, P3D)
+    b = create_graphics(@data[:symbology][layer][:data][:number_of_range_bins] * 4, @data[:symbology][layer][:data][:number_of_range_bins] * 4, P3D)
     b.begin_draw
       b.no_stroke
       b.background 0, 0, 0, 0
@@ -273,11 +273,11 @@ class Viewer < Processing::App
       @data[:symbology][layer][:radials][radial_index][:range_bins].each do |bin_value|
         value = NEXRAD.color_table(bin_value, @palette)
         if @smoothing
-          x = (cos(radians(@data[:symbology][layer][:radials][radial_index][:radial_start_angle] + (@data[:symbology][layer][:radials][radial_index][:radial_angle_delta] / 2))) * bin_index) + @data[:symbology][layer][:data][:number_of_range_bins]
-          y = (sin(radians(@data[:symbology][layer][:radials][radial_index][:radial_start_angle] + (@data[:symbology][layer][:radials][radial_index][:radial_angle_delta] / 2))) * bin_index) + @data[:symbology][layer][:data][:number_of_range_bins]
+          x = (cos(radians(@data[:symbology][layer][:radials][radial_index][:radial_start_angle] + (@data[:symbology][layer][:radials][radial_index][:radial_angle_delta] / 2))) * (bin_index * 2)) + (@data[:symbology][layer][:data][:number_of_range_bins] * 2)
+          y = (sin(radians(@data[:symbology][layer][:radials][radial_index][:radial_start_angle] + (@data[:symbology][layer][:radials][radial_index][:radial_angle_delta] / 2))) * (bin_index * 2)) + (@data[:symbology][layer][:data][:number_of_range_bins] * 2)
         else
-          x = (cos(radians(@data[:symbology][layer][:radials][radial_index][:radial_start_angle] + @data[:symbology][layer][:radials][radial_index][:radial_angle_delta])) * bin_index) + @data[:symbology][layer][:data][:number_of_range_bins]
-          y = (sin(radians(@data[:symbology][layer][:radials][radial_index][:radial_start_angle] + @data[:symbology][layer][:radials][radial_index][:radial_angle_delta])) * bin_index) + @data[:symbology][layer][:data][:number_of_range_bins]
+          x = (cos(radians(@data[:symbology][layer][:radials][radial_index][:radial_start_angle] + @data[:symbology][layer][:radials][radial_index][:radial_angle_delta])) * (bin_index * 2)) + (@data[:symbology][layer][:data][:number_of_range_bins] * 2)
+          y = (sin(radians(@data[:symbology][layer][:radials][radial_index][:radial_start_angle] + @data[:symbology][layer][:radials][radial_index][:radial_angle_delta])) * (bin_index * 2)) + (@data[:symbology][layer][:data][:number_of_range_bins] * 2)
         end #if
         this_radial << [x, y, value]
         bin_index += 1
