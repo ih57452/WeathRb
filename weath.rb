@@ -222,25 +222,24 @@ class Viewer < Processing::App
       c.menu(:site, %w{KMXX KBMX KGWX KABR KABX KAKQ KAMA KAMX KAPX KARX KATX KBBX KBGM KBHX KBIS KBLX KBMX KBOX KBRO KBUF KBYX KCAE KCBW KCBX KCCX KCLE KCLX KCRP KCXX KCYS KDAX KDDC KDFX KDGX KDIX KDLH KDMX KDOX KDTX KDVN KDYX KEAX KEMX KENX KEOX KEPZ KESX KEVX KEWX KEYX KFCX KFDR KFDX KFFC KFSD KFSX KFTG KFWS KGGW KGJX KGLD KGRB KGRK KGRR KGSP KGWX KGYX KHDX KHGX KHNX KHPX KHTX KICT KICX KILN KILX KIND KINX KIWA KIWX KJAX KJGX KJKL KLBB KLCH KLIX KLNX KLOT KLRX KLSX KLTX KLVX KLWX KLZK KMAF KMAX KMBX KMHX KMKX KMLB KMOB KMPX KMQT KMRX KMSX KMTX KMUX KMVX KMXX KNKX KNQA KOAX KOHX KOKX KOTX KPAH KPBZ KPDT KPOE KPUX KRAX KRGX KRIW KRLX KRTX KSFX KSGF KSHV KSJT KSOX KSRX KTBW KTFX KTLH KTLX KTWS KTYX KUDX KUEX KVAX KVBX KVNX KVTX KVWX KYUX PABC PACG PAEC PAHG PAIH PAKC PAPD PGUA PHKI PHKM PHMO PHWA TJUA})
       c.menu(:product, %w{Reflectivity_0 Reflectivity_1 Reflectivity_2 Reflectivity_3})
       c.button :update
-      c.slider(:zoom, 0.5..10, 0.87)
+      c.slider(:zoom, 1..10, 1)
       c.menu(:palette, %w{Reflectivity_1 Reflectivity_2}) { @img = draw_radial_image if @img }
       c.checkbox(:smoothing, true) { @img = draw_radial_image if @img }
     end #control panel
-    @x = 0
-    @y = 0
+    @x, @y = 460, 460
   end #setup
   
   def draw
     background 0
     text("Select a site from the control panel and click the 'update' button.", 50, 50) unless @img
     draw_info if @img
-    scale @zoom
-    image(@img, @x, @y) if @img
+    image(@img, 0, 0) if @img
+    camera @x, @y, (1 / @zoom) * width, @x, @y, 0, 0, 1, 0
   end #draw
   
   def mouse_dragged
-    @x += mouse_x - pmouse_x
-    @y += mouse_y - pmouse_y
+    @x -= mouse_x - pmouse_x
+    @y -= mouse_y - pmouse_y
   end #mouse dragged
     
   def update    
